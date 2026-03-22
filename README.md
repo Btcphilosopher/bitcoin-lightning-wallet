@@ -1,12 +1,12 @@
 # ⚡ Bolt Wallet — Bitcoin & Lightning Browser Extension
 
-A MetaMask-style Bitcoin and Lightning Network wallet for Chrome/Chromium (Manifest V3).
+A Bitcoin and Lightning Network wallet for Chrome/Chromium (Manifest V3).
 
 ---
 
 ## What It Does
 
-- Injects `window.bitcoin` into every web page — like MetaMask's `window.ethereum`
+- Injects `window.bitcoin` into every web page
 - Lets dApps request payments, signatures, and account access
 - Clean popup UI for wallet management
 - Lightning Network support via mock backend (LND integration included)
