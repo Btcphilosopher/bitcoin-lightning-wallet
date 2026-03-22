@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolt Wallet — Example dApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080a;
+      --bg2: #111114;
+      --bg3: #1a1a1f;
+      --border: #252530;
+      --amber: #f5a623;
+      --amber-glow: rgba(245, 166, 35, 0.12);
+      --green: #00e676;
+      --red: #ff4444;
+      --text1: #f0f0f4;
+      --text2: #8888a0;
+      --text3: #4a4a60;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text1);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .hero {
+      text-align: center;
+      padding: 60px 0 48px;
+    }
+    .hero-bolt {
+      font-size: 56px;
+      display: block;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 0 30px var(--amber));
+      animation: glow 3s ease-in-out infinite;
+    }
+    @keyframes glow {
+      0%, 100% { filter: drop-shadow(0 0 20px var(--amber)); }
+      50% { filter: drop-shadow(0 0 50px var(--amber)); }
+    }
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--amber) 0%, #fff 60%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      margin-top: 10px;
+      color: var(--text2);
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+    }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      margin-bottom: 32px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text3);
+      transition: 0.3s;
+    }
+    .status-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .status-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--text2);
+    }
+    .status-address {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--amber);
+    }
+
+    /* Cards */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card-full { grid-column: 1 / -1; }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title span { font-size: 16px; }
+
+    /* Inputs */
+    input, textarea {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--text1);
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      outline: none;
+      width: 100%;
+      transition: 0.15s;
+      resize: none;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 2px var(--amber-glow);
+    }
+    input::placeholder, textarea::placeholder { color: var(--text3); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: 0.15s;
+      width: 100%;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: var(--amber); color: #0c0c0e; }
+    .btn-primary:hover:not(:disabled) { background: #ffc347; box-shadow: 0 0 20px var(--amber-glow); }
+    .btn-secondary { background: var(--bg3); color: var(--text1); border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--amber); }
+
+    /* Result boxes */
+    .result {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      word-break: break-all;
+      color: var(--text2);
+      min-height: 50px;
+      max-height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      display: none;
+    }
+    .result.show { display: block; }
+    .result.success { border-color: rgba(0, 230, 118, 0.3); color: var(--green); }
+    .result.error { border-color: rgba(255, 68, 68, 0.3); color: var(--red); }
+
+    /* Log */
+    .log-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+    #console-log {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      height: 200px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .log-line { padding: 2px 0; }
+    .log-line.info { color: var(--text2); }
+    .log-line.success { color: var(--green); }
+    .log-line.error { color: var(--red); }
+    .log-line.data { color: var(--amber); }
+    .log-timestamp { color: var(--text3); margin-right: 8px; }
+
+    /* Balance display */
+    .balance-big {
+      font-family: 'Space Mono', monospace;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--amber);
+      letter-spacing: -0.02em;
+    }
+    .balance-sub { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text3); }
+
+    /* Wallet not found banner */
+    .no-wallet-banner {
+      background: rgba(245, 166, 35, 0.08);
+      border: 1px solid rgba(245, 166, 35, 0.3);
+      border-radius: 10px;
+      padding: 16px 20px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--amber);
+      margin-bottom: 24px;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hero">
+    <span class="hero-bolt">⚡</span>
+    <h1>Bolt Wallet dApp</h1>
+    <p class="hero-sub">Example integration · window.bitcoin · Lightning + Bitcoin</p>
+  </div>
+
+  <!-- Wallet not found warning -->
+  <div id="no-wallet-banner" class="no-wallet-banner" style="display:none">
+    ⚠️ Bolt Wallet extension not detected. Install the extension and reload this page.
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="status-dot" id="status-dot"></div>
+      <span class="status-text" id="status-text">Not connected</span>
+    </div>
+    <span class="status-address" id="status-address"></span>
+  </div>
+
+  <div class="grid">
+
+    <!-- 1. Connect -->
+    <div class="card">
+      <div class="card-title"><span>🔗</span> Connect Wallet</div>
+      <button class="btn btn-primary" id="btn-connect">Connect to Bolt Wallet</button>
+      <button class="btn btn-secondary" id="btn-get-accounts">getAccounts()</button>
+      <div class="result" id="result-connect"></div>
+    </div>
+
+    <!-- 2. Balance -->
+    <div class="card">
+      <div class="card-title"><span>💰</span> Balance</div>
+      <div id="balance-display" style="display:none">
+        <div class="balance-big" id="balance-sats">– sats</div>
+        <div class="balance-sub" id="balance-btc">– BTC</div>
+      </div>
+      <button class="btn btn-secondary" id="btn-get-balance">getBalance()</button>
+      <div class="result" id="result-balance"></div>
+    </div>
+
+    <!-- 3. Sign Message -->
+    <div class="card">
+      <div class="card-title"><span>✎</span> Sign Message</div>
+      <input type="text" id="sign-message" placeholder="Message to sign..." value="Hello from Bolt dApp!" />
+      <button class="btn btn-primary" id="btn-sign">signMessage()</button>
+      <div class="result" id="result-sign"></div>
+    </div>
+
+    <!-- 4. Create Invoice -->
+    <div class="card">
+      <div class="card-title"><span>📥</span> Create Invoice</div>
+      <input type="number" id="invoice-amount" placeholder="Amount (sats)" value="1000" min="1" />
+      <input type="text" id="invoice-desc" placeholder="Description" value="Test payment" />
+      <button class="btn btn-secondary" id="btn-create-invoice">createInvoice()</button>
+      <div class="result" id="result-create-invoice"></div>
+    </div>
+
+    <!-- 5. Pay Invoice (full width) -->
+    <div class="card card-full">
+      <div class="card-title"><span>⚡</span> Pay Lightning Invoice</div>
+      <textarea id="pay-invoice" placeholder="Paste a BOLT11 invoice here (lnbc...)" rows="3"></textarea>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" id="btn-pay" style="flex:1">payInvoice()</button>
+        <button class="btn btn-secondary" id="btn-gen-test-invoice" style="flex:1">Generate Test Invoice</button>
+      </div>
+      <div class="result" id="result-pay"></div>
+    </div>
+
+    <!-- 6. Public Key -->
+    <div class="card">
+      <div class="card-title"><span>🔑</span> Public Key</div>
+      <button class="btn btn-secondary" id="btn-get-pubkey">getPublicKey()</button>
+      <div class="result" id="result-pubkey"></div>
+    </div>
+
+    <!-- 7. Transactions -->
+    <div class="card">
+      <div class="card-title"><span>📜</span> Recent Transactions</div>
+      <button class="btn btn-secondary" id="btn-get-txs">getTransactions()</button>
+      <div class="result" id="result-txs"></div>
+    </div>
+
+  </div>
+
+  <!-- Console Log -->
+  <div>
+    <div class="log-title">Console Log</div>
+    <div id="console-log"></div>
+  </div>
+
+</div>
+
+<script>
+  // ─── Logger ─────────────────────────────────────────────────────────────
+
+  const logEl = document.getElementById('console-log');
+  function log(message, type = 'info') {
+    const time = new Date().toLocaleTimeString('en', { hour12: false });
+    const line = document.createElement('div');
+    line.className = `log-line ${type}`;
+    line.innerHTML = `<span class="log-timestamp">[${time}]</span>${message}`;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function showResult(elId, content, type = '') {
+    const el = document.getElementById(elId);
+    el.textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+    el.className = `result show ${type}`;
+  }
+
+  // ─── Provider Detection ──────────────────────────────────────────────────
+
+  let connected = false;
+  let address = '';
+
+  function checkProvider() {
+    if (typeof window.bitcoin === 'undefined') {
+      document.getElementById('no-wallet-banner').style.display = 'block';
+      log('⚠ window.bitcoin not found – install Bolt Wallet extension', 'error');
+      return false;
+    }
+    log('✓ window.bitcoin detected (Bolt Wallet v' + (window.bitcoin.version || '?') + ')', 'success');
+    return true;
+  }
+
+  function setConnected(addr) {
+    connected = true;
+    address = addr;
+    document.getElementById('status-dot').classList.add('connected');
+    document.getElementById('status-text').textContent = 'Connected';
+    document.getElementById('status-address').textContent = addr.slice(0, 10) + '…' + addr.slice(-8);
+    document.getElementById('balance-display').style.display = 'block';
+  }
+
+  // ─── Actions ─────────────────────────────────────────────────────────────
+
+  document.getElementById('btn-connect').addEventListener('click', async () => {
+    if (!checkProvider()) return;
+    try {
+      log('→ Calling window.bitcoin.connect()...');
+      const result = await window.bitcoin.connect();
+      log('✓ Connected! Address: ' + result.address, 'success');
+      setConnected(result.address);
+      showResult('result-connect', result, 'success');
+    } catch (err) {
+      log('✗ connect() failed: ' + err.message, 'error');
+      showResult('result-connect', 'Error: ' + err.message, 'error');
+    }
+  });
+
+  document.getElementById('btn-get-accounts').addEventListener('click', async () => {
+    if (!checkProvider()) return;
+    try {
+      log('→ Calling window.bitcoin.request({ method: "getAccounts" })...');
+      const accounts = await window.bitcoin.request({ method: 'getAccounts' });
+      log('✓ Accounts: ' + JSON.stringify(accounts), 'success');
+      showResult('result-connect', accounts, 'success');
+      if (accounts[0]) setConnected(accounts[0]);
+    } catch (err) {
+      log('✗ getAccounts() failed: ' + err.message, 'error');
+      showResult('result-connect', 'Error: ' + err.message, 'error');
+    }
+  });
+
+  document.getElementById('btn-get-balance').addEventListener('click', async () => {
+    if (!checkProvider()) return;
+    try {
+      log('→ Calling window.bitcoin.getBalance()...');
+      const balance = await window.bitcoin.getBalance();
+      log('✓ Balance: ' + balance.sats + ' sats (' + balance.btc + ' BTC)', 'data');
+      document.getElementById('balance-sats').textContent = balance.sats.toLocaleString() + ' sats';
+      document.getElementById('balance-btc').textContent = balance.btc + ' BTC';
+      showResult('result-balance', balance, 'success');
+    } catch (err) {
+      log('✗ getBalance() failed: ' + err.message, 'error');
+      showResult('result-balance', 'Error: ' + err.message, 'error');
+    }
+  });
+
+  document.getElementById('btn-sign').addEventListener('click', async () => {
+    if (!checkProvider()) return;
+    const message = document.getElementById('sign-message').value;
+    if (!message) return;
+    try {
+      log('→ Calling window.bitcoin.signMessage("' + message + '")...');
+      const result = await window.bitcoin.signMessage(message);
+      log('✓ Signature obtained! r=' + result.r.slice(0, 16) + '...', 'data');
+      showResult('result-sign', result, 'success');
+    } catch (err) {
+      log('✗ signMessage() failed: ' + err.message, 'error');
+      showResult('result-sign', 'Error: ' + err.message, 'error');
+    }
+  });
+
+  document.getElementById('btn-create-invoice').addEventListener('click', async () => {
+    if (!checkProvider()) return;
+    const amountSats = parseInt(document.getElementById('invoice-amount').value);
+    const description = document.getElementById('invoice-desc').value;
+    try {
+      log('→ Calling window.bitcoin.createInvoice(' + amountSats + ' sats)...');
+      const inv = await window.bitcoin.createInvoice(amountSats, description, 3600);
+      log('✓ Invoice created: ' + inv.paymentRequest.slice(0, 40) + '...', 'data');
+      showResult('result-create-invoice', inv, 'success');
+      // Auto-fill the pay field for convenience
+      document.getElementById('pay-invoice').value = inv.paymentRequest;
+    } catch (err) {
+      log('✗ createInvoice() failed: ' + err.message, 'error');
+      showResult('result-create-invoice', 'Error: ' + err.message, 'error');
+    }
+  });
+
+  document.getElementById('btn-gen-test-invoice').addEventListener('click', async () => {
+    if (!checkProvider()) return;
+    try {
+      log('→ Generating test invoice (500 sats)...');
+      const inv = await window.bitcoin.createInvoice(500, 'Test payment from dApp', 3600);
+      document.getElementById('pay-invoice').value = inv.paymentRequest;
+      log('✓ Test invoice ready. Click "payInvoice()" to pay it.', 'success');
+    } catch (err) {
+      log('✗ Could not generate test invoice: ' + err.message, 'error');
+    }
+  });
+
+  document.getElementById('btn-pay').addEventListener('click', async () => {
+    if (!checkProvider()) return;
+    const invoice = document.getElementById('pay-invoice').value.trim();
+    if (!invoice) return log('⚠ No invoice to pay', 'error');
+    try {
+      log('→ Calling window.bitcoin.payInvoice()...');
+      log('  Invoice: ' + invoice.slice(0, 50) + '...');
+      const result = await window.bitcoin.payInvoice(invoice, 100);
+      log('✓ Payment successful! Preimage: ' + result.preimage.slice(0, 32) + '...', 'success');
+      log('  Fee paid: ' + result.feeSats + ' sats', 'data');
+      showResult('result-pay', result, 'success');
+    } catch (err) {
+      log('✗ payInvoice() failed: ' + err.message, 'error');
+      showResult('result-pay', 'Error: ' + err.message, 'error');
+    }
+  });
+
+  document.getElementById('btn-get-pubkey').addEventListener('click', async () => {
+    if (!checkProvider()) return;
+    try {
+      log('→ Calling window.bitcoin.getPublicKey()...');
+      const result = await window.bitcoin.getPublicKey();
+      log('✓ Public key: ' + result.publicKey.slice(0, 20) + '...', 'data');
+      showResult('result-pubkey', result, 'success');
+    } catch (err) {
+      log('✗ getPublicKey() failed: ' + err.message, 'error');
+      showResult('result-pubkey', 'Error: ' + err.message, 'error');
+    }
+  });
+
+  document.getElementById('btn-get-txs').addEventListener('click', async () => {
+    if (!checkProvider()) return;
+    try {
+      log('→ Calling window.bitcoin.getTransactions()...');
+      const txs = await window.bitcoin.getTransactions(10);
+      log('✓ Got ' + txs.length + ' transactions', 'data');
+      showResult('result-txs', txs.map(t =>
+        `${t.type === 'send' ? '↑' : '↓'} ${t.amountSats} sats – ${t.description}`
+      ).join('\n'), 'success');
+    } catch (err) {
+      log('✗ getTransactions() failed: ' + err.message, 'error');
+      showResult('result-txs', 'Error: ' + err.message, 'error');
+    }
+  });
+
+  // ─── Init ─────────────────────────────────────────────────────────────
+
+  window.addEventListener('bolt:ready', () => {
+    log('⚡ bolt:ready event received', 'success');
+    checkProvider();
+  });
+
+  // Check on load too (provider may already be injected)
+  setTimeout(() => {
+    if (typeof window.bitcoin !== 'undefined') {
+      checkProvider();
+    } else {
+      log('Waiting for Bolt Wallet extension...', 'info');
+      setTimeout(() => {
+        if (typeof window.bitcoin === 'undefined') {
+          document.getElementById('no-wallet-banner').style.display = 'block';
+          log('Extension not found after 2s. Please install Bolt Wallet.', 'error');
+        }
+      }, 2000);
+    }
+  }, 100);
+</script>
+</body>
+</html>

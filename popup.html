@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolt Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════ SCREENS ════════════════════════════════ -->
+
+<!-- 1. SETUP / ONBOARDING -->
+<div id="screen-setup" class="screen">
+  <div class="logo-hero">
+    <div class="bolt-icon">⚡</div>
+    <h1 class="app-name">BOLT</h1>
+    <p class="tagline">Bitcoin & Lightning Wallet</p>
+  </div>
+  <div class="setup-actions">
+    <button id="btn-create-wallet" class="btn btn-primary btn-lg">
+      ⚡ Create New Wallet
+    </button>
+    <button id="btn-import-wallet" class="btn btn-ghost btn-lg">
+      ↩ Import Seed Phrase
+    </button>
+  </div>
+</div>
+
+<!-- 2. CREATE WALLET -->
+<div id="screen-create" class="screen hidden">
+  <div class="screen-header">
+    <button class="btn-back" data-target="screen-setup">←</button>
+    <h2>Create Wallet</h2>
+  </div>
+  <div class="form-group">
+    <label>Password</label>
+    <input type="password" id="create-password" placeholder="Min. 8 characters" />
+  </div>
+  <div class="form-group">
+    <label>Confirm Password</label>
+    <input type="password" id="create-password-confirm" placeholder="Repeat password" />
+  </div>
+  <div class="hint-box">
+    🔐 Your password encrypts your private keys locally. We never see it.
+  </div>
+  <button id="btn-do-create" class="btn btn-primary btn-full">Create Wallet</button>
+</div>
+
+<!-- 3. SHOW SEED PHRASE -->
+<div id="screen-seed" class="screen hidden">
+  <div class="screen-header">
+    <h2>Your Seed Phrase</h2>
+  </div>
+  <div class="warning-box">
+    ⚠️ Write these words down. Anyone with them controls your wallet.
+  </div>
+  <div id="seed-words" class="seed-grid"></div>
+  <button id="btn-seed-done" class="btn btn-primary btn-full">I've saved it safely</button>
+</div>
+
+<!-- 4. IMPORT WALLET -->
+<div id="screen-import" class="screen hidden">
+  <div class="screen-header">
+    <button class="btn-back" data-target="screen-setup">←</button>
+    <h2>Import Wallet</h2>
+  </div>
+  <div class="form-group">
+    <label>Seed Phrase (12 words)</label>
+    <textarea id="import-mnemonic" placeholder="word1 word2 word3 ... word12" rows="3"></textarea>
+  </div>
+  <div class="form-group">
+    <label>New Password</label>
+    <input type="password" id="import-password" placeholder="Min. 8 characters" />
+  </div>
+  <button id="btn-do-import" class="btn btn-primary btn-full">Import Wallet</button>
+</div>
+
+<!-- 5. UNLOCK -->
+<div id="screen-unlock" class="screen hidden">
+  <div class="logo-hero compact">
+    <div class="bolt-icon">⚡</div>
+    <h1 class="app-name">BOLT</h1>
+  </div>
+  <div class="form-group">
+    <label>Password</label>
+    <input type="password" id="unlock-password" placeholder="Enter your password" />
+  </div>
+  <button id="btn-unlock" class="btn btn-primary btn-full">Unlock</button>
+  <p class="small-text center">Forgot password? You'll need your seed phrase.</p>
+</div>
+
+<!-- 6. MAIN WALLET -->
+<div id="screen-main" class="screen hidden">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="network-badge">⚡ mainnet</div>
+    <button id="btn-lock" class="icon-btn" title="Lock wallet">🔒</button>
+  </div>
+
+  <!-- Balance -->
+  <div class="balance-card">
+    <div class="balance-label">Lightning Balance</div>
+    <div class="balance-sats" id="display-sats">– sats</div>
+    <div class="balance-btc" id="display-btc">– BTC</div>
+    <div class="address-row">
+      <span id="display-address" class="address-text"></span>
+      <button class="copy-btn" id="btn-copy-address" title="Copy address">⎘</button>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="action-buttons">
+    <button class="action-btn" id="btn-send-tab">
+      <span class="action-icon">↑</span>
+      <span>Send</span>
+    </button>
+    <button class="action-btn" id="btn-receive-tab">
+      <span class="action-icon">↓</span>
+      <span>Receive</span>
+    </button>
+    <button class="action-btn" id="btn-sign-tab">
+      <span class="action-icon">✎</span>
+      <span>Sign</span>
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="tab-history">Activity</button>
+    <button class="tab" data-tab="tab-sites">Sites</button>
+    <button class="tab" data-tab="tab-settings">Settings</button>
+  </div>
+
+  <!-- Tab: History -->
+  <div id="tab-history" class="tab-content active">
+    <div id="tx-list" class="tx-list">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Tab: Sites -->
+  <div id="tab-sites" class="tab-content">
+    <div id="sites-list" class="sites-list">
+      <div class="empty-state">No sites connected</div>
+    </div>
+  </div>
+
+  <!-- Tab: Settings -->
+  <div id="tab-settings" class="tab-content">
+    <div class="settings-section">
+      <h3>Lightning Node</h3>
+      <div class="form-group">
+        <label>LND Host (optional)</label>
+        <input type="text" id="setting-lnd-host" placeholder="https://your-node:8080" />
+      </div>
+      <div class="form-group">
+        <label>Admin Macaroon (hex)</label>
+        <input type="text" id="setting-macaroon" placeholder="0201036c6e64..." />
+      </div>
+      <button id="btn-save-settings" class="btn btn-secondary btn-full">Save Settings</button>
+    </div>
+    <div class="settings-section danger-zone">
+      <h3>Danger Zone</h3>
+      <button id="btn-show-seed" class="btn btn-ghost btn-full">Show Seed Phrase</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7. SEND PAYMENT PANEL -->
+<div id="panel-send" class="panel hidden">
+  <div class="panel-header">
+    <button class="btn-close-panel">✕</button>
+    <h3>Send Payment</h3>
+  </div>
+  <div class="form-group">
+    <label>Lightning Invoice (BOLT11)</label>
+    <textarea id="send-invoice-input" placeholder="lnbc..." rows="3"></textarea>
+  </div>
+  <div id="send-invoice-preview" class="invoice-preview hidden">
+    <div class="preview-row"><span>Amount</span><strong id="preview-amount">–</strong></div>
+    <div class="preview-row"><span>Description</span><strong id="preview-desc">–</strong></div>
+  </div>
+  <div class="form-group">
+    <label>Max Fee (sats)</label>
+    <input type="number" id="send-max-fee" value="100" min="1" />
+  </div>
+  <button id="btn-do-send" class="btn btn-primary btn-full">⚡ Send Payment</button>
+  <div id="send-result" class="result-box hidden"></div>
+</div>
+
+<!-- 8. RECEIVE PAYMENT PANEL -->
+<div id="panel-receive" class="panel hidden">
+  <div class="panel-header">
+    <button class="btn-close-panel">✕</button>
+    <h3>Receive Payment</h3>
+  </div>
+  <div class="form-group">
+    <label>Amount (sats)</label>
+    <input type="number" id="receive-amount" placeholder="1000" min="1" />
+  </div>
+  <div class="form-group">
+    <label>Description</label>
+    <input type="text" id="receive-description" placeholder="For coffee ☕" />
+  </div>
+  <button id="btn-create-invoice" class="btn btn-primary btn-full">Generate Invoice</button>
+  <div id="invoice-result" class="invoice-result hidden">
+    <div class="qr-placeholder" id="qr-placeholder"></div>
+    <textarea id="invoice-output" readonly rows="4"></textarea>
+    <button id="btn-copy-invoice" class="btn btn-secondary btn-full">⎘ Copy Invoice</button>
+  </div>
+</div>
+
+<!-- 9. SIGN MESSAGE PANEL -->
+<div id="panel-sign" class="panel hidden">
+  <div class="panel-header">
+    <button class="btn-close-panel">✕</button>
+    <h3>Sign Message</h3>
+  </div>
+  <div class="form-group">
+    <label>Message</label>
+    <textarea id="sign-message-input" placeholder="Type a message to sign..." rows="3"></textarea>
+  </div>
+  <button id="btn-do-sign" class="btn btn-primary btn-full">✎ Sign Message</button>
+  <div id="sign-result" class="result-box hidden"></div>
+</div>
+
+<!-- 10. APPROVAL SCREEN -->
+<div id="screen-approval" class="screen hidden">
+  <div class="approval-header">
+    <div class="approval-icon" id="approval-icon">🔗</div>
+    <h2 id="approval-title">Connection Request</h2>
+    <p id="approval-origin" class="approval-origin"></p>
+  </div>
+  <div id="approval-details" class="approval-details"></div>
+  <div class="approval-actions">
+    <button id="btn-reject" class="btn btn-danger">Reject</button>
+    <button id="btn-approve" class="btn btn-primary">Approve</button>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="popup.js" type="module"></script>
+</body>
+</html>
