@@ -204,6 +204,3 @@ For a production wallet, consider:
 
 ---
 
-## License
-
-MIT — Build freely, stack sats. ⚡
